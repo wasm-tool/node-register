@@ -1,0 +1,19 @@
+{
+  "name": "@wasm-tool/node-register",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wasm-tool/node-register.git"
+  },
+  "author": "Sven Sauleau <sven@sauleau.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/wasm-tool/node-register/issues"
+  },
+  "homepage": "https://github.com/wasm-tool/node-register#readme"
+}
