@@ -1,15 +1,21 @@
 function trampoline(name, to) {
-  return `(function ${name}(...args) { return ${to}(...args); })`;
+  return `(function ${name}(...args) {
+            if (typeof ${to} !== "function") {
+              throw new Error('${to} expected to be a function');
+            }
+            return ${to}(...args);
+          })`;
 }
 
 function generateExports(exports) {
   return exports.reduce((code, e) => {
-    return (
-      code +
-      `module.exports["${e.name}"] = ` +
-      trampoline(e.name, `wasminstance.exports["${e.name}"]`) +
-      ';\n'
-    );
+    if (e.kind === "function" || e.kind === "memory" || e.kind === "table") {
+      return (
+        code +
+        `module.exports["${e.name}"] = wasminstance.exports["${e.name}"];\n`
+      );
+    }
+    throw new Error("unimplemented export kind: " + e.kind);
   }, '');
 }
 
@@ -18,6 +24,9 @@ function generateImports(imports, basedir) {
   const importedModule = {};
 
   return imports.reduce((code, imp) => {
+    if (imp.kind !== "function") {
+      throw new Error("unimplemented import kind: " + imp.kind);
+    }
     if (!importedModule[imp.module]) {
       code += `jsimports["${imp.module}"] = require(join("${basedir}", "${imp.module}"));\n`;
       code += `wasmimports["${imp.module}"] = {}\n`;
@@ -47,8 +56,8 @@ require.extensions['.wasm'] = function (module, filename) {
     const jsimports = {};
   `;
   code += generateImports(wasmImports, module.path);
-  code += `const wasminstance = new WebAssembly.Instance(m, wasmimports);`;
+  code += `const wasminstance = new WebAssembly.Instance(m, wasmimports);\n`;
   code += generateExports(wasmExports);
-  console.log(code);
   return module._compile(code, filename);
 };
+
