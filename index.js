@@ -46,6 +46,7 @@ require.extensions['.wasm'] = function (module, filename) {
   const m = new WebAssembly.Module(bin);
   const wasmExports = WebAssembly.Module.exports(m);
   const wasmImports = WebAssembly.Module.imports(m);
+  const { dirname } = require("path");
 
   let code = `
     const { join } = require("path");
@@ -55,7 +56,7 @@ require.extensions['.wasm'] = function (module, filename) {
     const wasmimports = {};
     const jsimports = {};
   `;
-  code += generateImports(wasmImports, module.path);
+  code += generateImports(wasmImports, dirname(filename));
   code += `const wasminstance = new WebAssembly.Instance(m, wasmimports);\n`;
   code += generateExports(wasmExports);
   return module._compile(code, filename);
