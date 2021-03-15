@@ -27,7 +27,7 @@ function generateImports(imports, basedir) {
     if (imp.kind !== "function") {
       throw new Error("unimplemented import kind: " + imp.kind);
     }
-    if (!importedModule[imp.module]) {
+    if (!importedModule[imp.module] && imp.module !== "env") {
       code += `jsimports["${imp.module}"] = require(join("${basedir}", "${imp.module}"));\n`;
       code += `wasmimports["${imp.module}"] = {}\n`;
       importedModule[imp.module] = true;
@@ -53,7 +53,11 @@ require.extensions['.wasm'] = function (module, filename) {
     const { readFileSync } = require("fs");
     const bin = readFileSync("${module.filename}");
     const m = new WebAssembly.Module(bin);
-    const wasmimports = {};
+    const wasmimports = {
+      "env": {
+        "now": Date.now
+      }
+    };
     const jsimports = {};
   `;
   code += generateImports(wasmImports, dirname(filename));
@@ -61,4 +65,3 @@ require.extensions['.wasm'] = function (module, filename) {
   code += generateExports(wasmExports);
   return module._compile(code, filename);
 };
-
